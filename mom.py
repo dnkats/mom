@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os, sys
 import re
+import ConfigParser
 from subprocess import call, check_output
 from termcolor import colored
 
@@ -30,13 +31,51 @@ colsfg="grey red green yellow blue magenta cyan white"
 colsbg="on_grey on_red on_green on_yellow on_blue on_magenta on_cyan on_white"
 attrs="bold dark underline blink reverse concealed"
 
+savecats = dict()
+savecats["cfg"]=[]
+savecats["cbg"]=[]
+savecats["att"]=[]
+lastcmd=[]
 
 def readrcf(rcfil):
     # read config and change defaults
-    rcf=open(rcfil,'r')
-#   for line in rcf:
-#       print line
-    rcf.close()
+    conf = ConfigParser.RawConfigParser()
+    conf.readfp(FakeSecHead(open(rcfil)))
+    par = dict(conf.items("asection"))
+    Params = dict()
+    for k, v in par.iteritems():
+        Params[k.upper()] = v
+    globals().update(Params)
+    # restore type
+    global COMPACT, TABLEN
+    COMPACT = int(COMPACT)
+    TABLEN = int(TABLEN)
+    global COLORIZE, HLPROGRAM, HLOPTION, RESETLINE
+    COLORIZE = to_bool(COLORIZE)
+    HLPROGRAM = to_bool(HLPROGRAM)
+    HLOPTION = to_bool(HLOPTION)
+    RESETLINE = to_bool(RESETLINE)
+
+# no sections in rcfile
+class FakeSecHead(object):
+    def __init__(self, fp):
+        self.fp = fp
+        self.sechead = '[asection]\n'
+    def readline(self):
+        if self.sechead:
+            try: return self.sechead
+            finally: self.sechead = None
+        else: return self.fp.readline()
+
+def to_bool(value):
+    """
+       Converts 'something' to boolean. Raises exception for invalid formats
+           Possible True  values: 1, True, "1", "TRue", "yes", "y", "t"
+           Possible False values: 0, False, None, [], {}, "", "0", "faLse", "no", "n", "f", 0.0, ...
+    """
+    if str(value).lower() in ("yes", "y", "true",  "t", "1"): return True
+    if str(value).lower() in ("no",  "n", "false", "f", "0", "0.0", "", "none", "[]", "{}"): return False
+    raise Exception('Invalid value for boolean conversion: ' + str(value))
 
 def ensure_dir(d):
     if not os.path.exists(d):
@@ -67,11 +106,6 @@ def outputhelp(fil):
             newl = True
     hf.close()
 
-savecats = dict()
-savecats["cfg"]=[]
-savecats["cbg"]=[]
-savecats["att"]=[]
-lastcmd=[]
 def wordcmd(w):
     #analyse and save a command
     global savecats
