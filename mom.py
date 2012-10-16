@@ -12,8 +12,10 @@ COMPACT=0
 TABLEN=5
 COLORIZE=True
 # highlight program name
+HLPROGRAM=True
 HLPROGBEG="\\on_yellow \\bold"
 HLPROGEND="\\ \\"
+HLOPTION=True
 HLOPTBEG="\\bold"
 HLOPTEND="\\"
 # reset decorations after each line
@@ -93,26 +95,26 @@ def printword(w):
     curcbg = savecats["cbg"][-1] if savecats["cbg"] else None
     print colored(w,curcfg,curcbg,attrs=list(set(savecats["att"]))),
 
-def preprocess(line):
-    # highlight the name of program
+def highlight(line,pattern,hlbeg,hlend):
     i = 0; output = ''
-    for m in re.finditer("(\\b"+sys.argv[1]+"\\b)",line):
+    for m in re.finditer(pattern,line):
         output += "".join([line[i:m.start()],
-                        " ",HLPROGBEG," ",
+                        " ",hlbeg," ",
                         line[m.start():m.end()],
-                        " ",HLPROGEND," "])
-        i = m.end()
-    line="".join([output,line[i:]])
-
-    # highlight options (words starting with -)
-    i = 0; output = ''
-    for m in re.finditer(r"(\B-+)\w+",line):
-        output += "".join([line[i:m.start()],
-                        " ",HLOPTBEG," ",
-                        line[m.start():m.end()],
-                        " ",HLOPTEND," "])
+                        " ",hlend," "])
         i = m.end()
     return "".join([output,line[i:]])
+
+def preprocess(line):
+    if HLPROGRAM:
+        # highlight the name of program
+        line = highlight(line,"(?<!\.)(\\b"+sys.argv[1]+"\\b)",HLPROGBEG,HLPROGEND)
+   
+    if HLOPTION:
+        # highlight options (words starting with -)
+        line = highlight(line,r"(\B-+)\w+",HLOPTBEG,HLOPTEND)
+    return line 
+
 def printline(line):
     # print a line with colors and attributes
     line = preprocess(line)
