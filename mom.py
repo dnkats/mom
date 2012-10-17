@@ -120,22 +120,22 @@ def wordcmd(w):
         #add attribute
         lastcmd.append("att")
     else:
-        print colored(w,"red","on_grey"),
-        return
+        return colored("\\"+w,"red","on_white")+" "
     savecats[lastcmd[-1]].append(w)
+    return ""
 
-def printword(w):
+def colorize(line):
     curcfg = savecats["cfg"][-1] if savecats["cfg"] else None
     curcbg = savecats["cbg"][-1] if savecats["cbg"] else None
-    print colored(w,curcfg,curcbg,attrs=list(set(savecats["att"]))),
+    return colored(line,curcfg,curcbg,attrs=list(set(savecats["att"])))
 
 def highlight(line,pattern,hlbeg,hlend):
     i = 0; output = ''
     for m in re.finditer(pattern,line):
         output += "".join([line[i:m.start()],
-                        " ",hlbeg," ",
+                        hlbeg," ",
                         line[m.start():m.end()],
-                        " ",hlend," "])
+                        " ",hlend])
         i = m.end()
     return "".join([output,line[i:]])
 
@@ -152,7 +152,7 @@ def preprocess(line):
 def printline(line):
     # print a line with colors and attributes
     line = preprocess(line)
-    words=line.split()
+    line = line.rstrip('\n')
     global savecats
     global lastcmd
     if RESETLINE:
@@ -160,16 +160,22 @@ def printline(line):
         savecats["cbg"]=[]
         savecats["att"]=[]
         lastcmd=[]
-    for w in words:
-        if w[0]!="\\":
-            printword(w)
-        elif w=="\\":
+
+    i = 0; output = ''
+    # commands
+    for m in re.finditer(r"(\B\\+)\w+|\\+",line):
+        output += colorize(line[i:m.start()])
+        w = line[m.start():m.end()]
+        if w=="\\":
             #end
             if lastcmd:
                 savecats[lastcmd.pop()].pop()
         else:
-            wordcmd(w[1:])
-
+            output += wordcmd(w[1:])
+        i = m.end()
+        if i < len(line) and line[i]==" ":
+            i = i + 1
+    print "".join([output,colorize(line[i:])]),
 
 def addhelp(fil):
     # add help from stdin
