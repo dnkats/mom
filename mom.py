@@ -6,40 +6,46 @@ from subprocess import call, check_output
 from termcolor import colored
 
 #default config file
-RCFILE="~/.momrc"
+RCFILE = "~/.momrc"
 #defaults
-INFODIR="~/.mom"
-COMPACT=0
-TABLEN=5
-COLORIZE=True
+INFODIR = "~/.mom"
+COMPACT = 0
+TABLEN = 5
+COLORIZE = True
+ATTRIZE = True
 # highlight program name
-HLPROGRAM=True
-HLPROGBEG="\\on_yellow \\bold"
-HLPROGEND="\\ \\"
-HLOPTION=True
-HLOPTBEG="\\bold"
-HLOPTEND="\\"
+HLPROGRAM = True
+HLPROGBEG = "\\on_yellow \\bold"
+HLOPTION = True
+HLOPTBEG = "\\bold"
 # reset decorations after each line
-RESETLINE=True
+RESETLINE = True
 # decorations for service outputs
-HLSERVBEG="\\underline"
-HLSERVEND="\\"
+HLSERVBEG = "\\underline"
+# will be generated
+HLPROGEND = ""
+HLOPTEND = ""
+HLSERVEND = ""
+# unknown command; colors and attributes have to be given explicitly
+UCCOLFG = "red"
+UCCOLBG = "on_white"
+UCATTR = "" # comma separated string 
 # editor (if $EDITOR is not set)
-EDITOR="vim"
+EDITOR = "vim"
 # standard help options
-HELPOPTIONS=["-h","--help", "-help"]
+HELPOPTIONS = ["-h","--help", "-help"]
 
-EXTENSION=".m0m"
+EXTENSION = ".m0m"
 
-colsfg="grey red green yellow blue magenta cyan white"
-colsbg="on_grey on_red on_green on_yellow on_blue on_magenta on_cyan on_white"
-attrs="bold dark underline blink reverse concealed"
+colsfg = "grey red green yellow blue magenta cyan white"
+colsbg = "on_grey on_red on_green on_yellow on_blue on_magenta on_cyan on_white"
+attrs = "bold dark underline blink reverse concealed"
 
 savecats = dict()
-savecats["cfg"]=[]
-savecats["cbg"]=[]
-savecats["att"]=[]
-lastcmd=[]
+savecats["cfg"] = []
+savecats["cbg"] = []
+savecats["att"] = []
+lastcmd = []
 
 def readrcf(rcfil):
     # read config and change defaults
@@ -54,12 +60,13 @@ def readrcf(rcfil):
     global COMPACT, TABLEN
     COMPACT = int(COMPACT)
     TABLEN = int(TABLEN)
-    global COLORIZE, HLPROGRAM, HLOPTION, RESETLINE
+    global COLORIZE, ATTRIZE, HLPROGRAM, HLOPTION, RESETLINE
     COLORIZE = to_bool(COLORIZE)
+    ATTRIZE = to_bool(ATTRIZE)
     HLPROGRAM = to_bool(HLPROGRAM)
     HLOPTION = to_bool(HLOPTION)
     RESETLINE = to_bool(RESETLINE)
-
+    
 # no sections in rcfile
 class FakeSecHead(object):
     def __init__(self, fp):
@@ -80,6 +87,22 @@ def to_bool(value):
     if str(value).lower() in ("yes", "y", "true",  "t", "1"): return True
     if str(value).lower() in ("no",  "n", "false", "f", "0", "0.0", "", "none", "[]", "{}"): return False
     raise Exception('Invalid value for boolean conversion: ' + str(value))
+
+def notclosedcolors(line):
+    global RESETLINE
+    saveRL = RESETLINE
+    RESETLINE = True
+    printline(line)
+    RESETLINE = saveRL
+    return len(lastcmd)
+
+def genends():
+    # generate ends for default highlights
+    global HLPROGEND, HLOPTEND, HLSERVEND
+    HLPROGEND = "\\ "*notclosedcolors(HLPROGBEG)
+    HLOPTEND = "\\ "*notclosedcolors(HLOPTBEG)
+    HLSERVEND = "\\ "*notclosedcolors(HLSERVBEG)
+
 
 def ensure_dir(d):
     if not os.path.exists(d):
@@ -110,6 +133,15 @@ def outputhelp(fil):
             newl = True
     hf.close()
 
+def color(text, color=None, on_color=None, attrs=None):
+    # wrapper for colored
+    if not COLORIZE:
+        color = None
+        on_color = None
+    if not ATTRIZE:
+        attrs = None
+    return colored(text, color, on_color, attrs)
+
 def wordcmd(w):
     #analyse and save a command
     global savecats
@@ -124,14 +156,18 @@ def wordcmd(w):
         #add attribute
         lastcmd.append("att")
     else:
-        return colored("\\"+w,"red","on_white")+" "
+        if UCATTR.strip():
+            attrib = [at.strip() for at in UCATTR.split(",")]
+        else:
+            attrib = []
+        return color(w,UCCOLFG,UCCOLBG,attrib)
     savecats[lastcmd[-1]].append(w)
     return ""
 
 def colorize(line):
     curcfg = savecats["cfg"][-1] if savecats["cfg"] else None
     curcbg = savecats["cbg"][-1] if savecats["cbg"] else None
-    return colored(line,curcfg,curcbg,attrs=list(set(savecats["att"])))
+    return color(line,curcfg,curcbg,attrs=list(set(savecats["att"])))
 
 def highlight(line,pattern,hlbeg,hlend):
     i = 0; output = ''
@@ -139,7 +175,7 @@ def highlight(line,pattern,hlbeg,hlend):
         output += "".join([line[i:m.start()],
                         hlbeg," ",
                         line[m.start():m.end()],
-                        hlend," "])
+                        hlend])
         i = m.end()
     return "".join([output,line[i:]])
 
@@ -169,16 +205,21 @@ def printline(line):
     for m in re.finditer(r"(\\+)\w+|\\+",line):
         output += colorize(line[i:m.start()])
         w = line[m.start():m.end()]
+        i = m.end()
+        unknwncmd = ""
         if w=="\\":
             #end
             if lastcmd:
                 savecats[lastcmd.pop()].pop()
         else:
-            output += wordcmd(w[1:])
-        i = m.end()
-        if i < len(line) and line[i]==" ":
+            unknwncmd = wordcmd(w[1:])
+            output += unknwncmd 
+                
+        if i < len(line) and line[i]==" " and not unknwncmd:
             i = i + 1
-    print "".join([output,colorize(line[i:])]),
+    # print without space at the end
+    sys.stdout.write("".join([output,colorize(line[i:])]))
+    #print "".join([output,colorize(line[i:])]),
 
 def addhelp(fil):
     # add help from stdin
@@ -222,12 +263,14 @@ def main():
     #config
     if os.path.isfile(rcfil):
         readrcf(rcfil)
+    if len(sys.argv)==1:
+        print "Use",color(sys.argv[0],"red"), "<command>"
+        return
+    #generate ends for highlights
+    genends()
 
     infdir=os.path.expanduser(INFODIR)
     ensure_dir(infdir)
-    if len(sys.argv)==1:
-        print "Use ",colored(sys.argv[0],"red"), "<command>"
-        return
     helpf=os.path.join(infdir,sys.argv[1]+EXTENSION)
     
     if len(sys.argv)>2:
