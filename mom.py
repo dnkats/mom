@@ -125,8 +125,7 @@ def outputhelp(fil):
                 newl = False
         else:
             if not COMPACT:
-                if TABLEN:
-                    print " "*(TABLEN-1),
+                print " "*(TABLEN),
             else:
                 print " - ",
             printline(line)
