@@ -20,7 +20,6 @@
 # THE SOFTWARE.
 #
 # Author: Konstantin Lepa <konstantin.lepa@gmail.com>
-# D. Kats: add correction for \n
 
 """ANSII Color formatting for output in terminal."""
 
@@ -111,7 +110,6 @@ def colored(text, color=None, on_color=None, attrs=None):
         if attrs is not None:
             for attr in attrs:
                 text = fmt_str % (ATTRIBUTES[attr], text)
-        
         text += RESET
     return text
 
