@@ -289,7 +289,8 @@ def main():
             printline(HLSERVBEG+" Available commands"+HLSERVEND)
             print
             for fil in os.listdir(infdir):
-                print fil[:-len(EXTENSION)],
+                if fil[-len(EXTENSION):] == EXTENSION:
+                    print fil[:-len(EXTENSION)],
     elif os.path.isfile(helpf):
         outputhelp(helpf)
     else:
