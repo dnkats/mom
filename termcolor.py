@@ -101,22 +101,19 @@ def colored(text, color=None, on_color=None, attrs=None):
         colored('Hello, World!', 'green')
     """
     if os.getenv('ANSI_COLORS_DISABLED') is None:
-        textn = text.rstrip('\n')
-        nnewl = len(text) - len(textn)
         fmt_str = '\033[%dm%s'
         if color is not None:
-            textn = fmt_str % (COLORS[color], textn)
+            text = fmt_str % (COLORS[color], text)
 
         if on_color is not None:
-            textn = fmt_str % (HIGHLIGHTS[on_color], textn)
+            text = fmt_str % (HIGHLIGHTS[on_color], text)
 
         if attrs is not None:
             for attr in attrs:
-                textn = fmt_str % (ATTRIBUTES[attr], textn)
+                text = fmt_str % (ATTRIBUTES[attr], text)
         
-        textn += RESET
-        if nnewl: textn += '\n'*nnewl
-    return textn
+        text += RESET
+    return text
 
 
 def cprint(text, color=None, on_color=None, attrs=None, **kwargs):

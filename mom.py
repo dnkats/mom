@@ -115,8 +115,7 @@ def outputhelp(fil):
     newl = True
     for line in hf:
         if line[0]=="*":
-            if not newl:
-                print
+            if not newl: print
             printline(line[2:].rstrip('\n'))
             if not COMPACT:
                 print
@@ -130,6 +129,7 @@ def outputhelp(fil):
                 print " - ",
             printline(line)
             newl = True
+    if not newl: print
     hf.close()
 
 def color(text, color=None, on_color=None, attrs=None):
