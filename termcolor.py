@@ -20,6 +20,7 @@
 # THE SOFTWARE.
 #
 # Author: Konstantin Lepa <konstantin.lepa@gmail.com>
+# D. Kats: add correction for \n
 
 """ANSII Color formatting for output in terminal."""
 
@@ -100,19 +101,22 @@ def colored(text, color=None, on_color=None, attrs=None):
         colored('Hello, World!', 'green')
     """
     if os.getenv('ANSI_COLORS_DISABLED') is None:
+        textn = text.rstrip('\n')
+        nnewl = len(text) - len(textn)
         fmt_str = '\033[%dm%s'
         if color is not None:
-            text = fmt_str % (COLORS[color], text)
+            textn = fmt_str % (COLORS[color], textn)
 
         if on_color is not None:
-            text = fmt_str % (HIGHLIGHTS[on_color], text)
+            textn = fmt_str % (HIGHLIGHTS[on_color], textn)
 
         if attrs is not None:
             for attr in attrs:
-                text = fmt_str % (ATTRIBUTES[attr], text)
-
-        text += RESET
-    return text
+                textn = fmt_str % (ATTRIBUTES[attr], textn)
+        
+        textn += RESET
+        if nnewl: textn += '\n'*nnewl
+    return textn
 
 
 def cprint(text, color=None, on_color=None, attrs=None, **kwargs):

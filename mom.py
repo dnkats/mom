@@ -26,6 +26,8 @@ HLSERVBEG="\\underline"
 HLSERVEND="\\"
 # editor (if $EDITOR is not set)
 EDITOR="vim"
+# standard help options
+HELPOPTIONS=["-h","--help", "-help"]
 
 colsfg="grey red green yellow blue magenta cyan white"
 colsbg="on_grey on_red on_green on_yellow on_blue on_magenta on_cyan on_white"
@@ -90,7 +92,7 @@ def outputhelp(fil):
         if line[0]=="*":
             if not newl:
                 print
-            printline(line[2:])
+            printline(line[2:].rstrip('\n'))
             if not COMPACT:
                 print
                 newl = True
@@ -102,7 +104,6 @@ def outputhelp(fil):
             else:
                 print " - ",
             printline(line)
-            print
             newl = True
     hf.close()
 
@@ -135,7 +136,7 @@ def highlight(line,pattern,hlbeg,hlend):
         output += "".join([line[i:m.start()],
                         hlbeg," ",
                         line[m.start():m.end()],
-                        " ",hlend])
+                        hlend," "])
         i = m.end()
     return "".join([output,line[i:]])
 
@@ -152,7 +153,6 @@ def preprocess(line):
 def printline(line):
     # print a line with colors and attributes
     line = preprocess(line)
-    line = line.rstrip('\n')
     global savecats
     global lastcmd
     if RESETLINE:
@@ -163,7 +163,7 @@ def printline(line):
 
     i = 0; output = ''
     # commands
-    for m in re.finditer(r"(\B\\+)\w+|\\+",line):
+    for m in re.finditer(r"(\\+)\w+|\\+",line):
         output += colorize(line[i:m.start()])
         w = line[m.start():m.end()]
         if w=="\\":
@@ -180,11 +180,11 @@ def printline(line):
 def addhelp(fil):
     # add help from stdin
     hf=open(fil,'a')
-    printline(HLSERVBEG+" Topic "+HLSERVEND)
+    printline(HLSERVBEG+" Topic"+HLSERVEND)
     inp=raw_input(': ')
     if len(inp) > 0:
         hf.write("* "+inp+"\n")
-        printline(HLSERVBEG+" Description "+HLSERVEND)
+        printline(HLSERVBEG+" Description"+HLSERVEND)
         inp=raw_input(': ')
         if len(inp)>0:
             hf.write(inp+"\n")
@@ -192,7 +192,7 @@ def addhelp(fil):
 
 def rmhelp(fil):
     # rm help from file
-    printline(HLSERVBEG+" Remove with \\red x "+HLSERVEND)
+    printline(HLSERVBEG+" Remove with \\red x"+HLSERVEND)
     print
     hf=open(fil,'r')
     lines=hf.readlines()
@@ -201,7 +201,7 @@ def rmhelp(fil):
     rmd=False
     for line in lines:
         if line[0]=="*":
-            printline(line[2:])
+            printline(line[2:].rstrip('\n'))
             inp=raw_input(" : ")
             if inp!="x":
                 hf.write(line)
@@ -243,15 +243,19 @@ def main():
         outputhelp(helpf)
     else:
         # call standard help
-        try:
-            lines = check_output([sys.argv[1],"-h"])
-            printline(HLSERVBEG+" Standard help "+HLSERVEND)
-            print
-            for line in lines.split('\n'):
-                printline(line)
+        for hop in HELPOPTIONS: 
+            try:
+                lines = check_output([sys.argv[1],hop])[:-1] # remove last \n
+                printline(HLSERVBEG+" Standard help"+HLSERVEND)
                 print
-        except:
-            pass
+                for line in lines.split('\n'):
+                    printline(line)
+                    print
+                break
+            except:
+                # try next h-option
+                pass
+                
 
 if __name__ == '__main__':
     main()
