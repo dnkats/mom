@@ -29,6 +29,8 @@ EDITOR="vim"
 # standard help options
 HELPOPTIONS=["-h","--help", "-help"]
 
+EXTENSION=".m0m"
+
 colsfg="grey red green yellow blue magenta cyan white"
 colsbg="on_grey on_red on_green on_yellow on_blue on_magenta on_cyan on_white"
 attrs="bold dark underline blink reverse concealed"
@@ -225,7 +227,7 @@ def main():
     if len(sys.argv)==1:
         print "Use ",colored(sys.argv[0],"red"), "<command>"
         return
-    helpf=os.path.join(infdir,sys.argv[1]+".m0m")
+    helpf=os.path.join(infdir,sys.argv[1]+EXTENSION)
     
     if len(sys.argv)>2:
         # some options
@@ -238,7 +240,12 @@ def main():
         elif opt == "edit":
             UseEditor = os.environ.get('EDITOR',EDITOR)
             call([UseEditor,helpf])
-
+        elif opt == "ls":
+            # list all help files
+            printline(HLSERVBEG+" Available commands"+HLSERVEND)
+            print
+            for fil in os.listdir(infdir):
+                print fil[:-len(EXTENSION)],
     elif os.path.isfile(helpf):
         outputhelp(helpf)
     else:
