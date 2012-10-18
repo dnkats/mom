@@ -102,7 +102,8 @@ def outputhelp(fil):
                 newl = False
         else:
             if not COMPACT:
-                print " "*TABLEN,
+                if TABLEN:
+                    print " "*(TABLEN-1),
             else:
                 print " - ",
             printline(line)
