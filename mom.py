@@ -114,9 +114,11 @@ def outputhelp(fil):
     hf=open(fil,'r')
     newl = True
     for line in hf:
-        if line[0]=="*":
+        if line[0]=="#":
+            pass
+        elif line[0]=="*":
             if not newl: print
-            printline(line[2:].rstrip('\n'))
+            printline(line[1:].rstrip('\n'))
             if not COMPACT:
                 print
                 newl = True
@@ -127,7 +129,7 @@ def outputhelp(fil):
                 print " "*(TABLEN),
             else:
                 print " - ",
-            printline(line)
+            printline(line[1:])
             newl = True
     if not newl: print
     hf.close()
@@ -226,34 +228,43 @@ def addhelp(fil):
     printline(HLSERVBEG+" Topic"+HLSERVEND)
     inp=raw_input(': ')
     if len(inp) > 0:
-        hf.write("* "+inp+"\n")
+        hf.write("*"+inp+"\n")
         printline(HLSERVBEG+" Description"+HLSERVEND)
         inp=raw_input(': ')
         if len(inp)>0:
-            hf.write(inp+"\n")
+            hf.write(" "+inp+"\n")
     hf.close()
 
 def rmhelp(fil):
     # rm help from file
-    printline(HLSERVBEG+" Remove with \\red x"+HLSERVEND)
+    printline(HLSERVBEG+" Remove with \\red x\\ , hide with \\blue c\\ "+HLSERVEND)
     print
     hf=open(fil,'r')
     lines=hf.readlines()
     hf.close()
-    hf=open(fil+".tmp",'w')
-    rmd=False
+    lines2=""
+    rmd=0
     for line in lines:
         if line[0]=="*":
-            printline(line[2:].rstrip('\n'))
+            rmd=0
+            printline(line[1:].rstrip('\n'))
             inp=raw_input(" : ")
-            if inp!="x":
-                hf.write(line)
+            if inp=="x":
+                rmd=1
+            elif inp=="c":
+                rmd=2
+                # comment
+                lines2 += "#"+line
             else:
-                rmd=True
+                lines2 += line
         elif not rmd:
-            hf.write(line)
+            lines2 += line
+        elif rmd==2:
+            # comment
+            lines2 += "#"+line
+    hf=open(fil,'w')
+    hf.write(lines2)
     hf.close()
-    os.rename(fil+".tmp",fil)
 
 def main():
     #expand ~
