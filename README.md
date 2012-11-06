@@ -8,6 +8,7 @@ Create your own help files with colors.
 2. Add `complete -c mom` to your `.bashrc` to have an autocompletion of commands (see also tip 4)
 3. Put the folder with your help files to Dropbox by setting `InfoDir = ~/Dropbox/mom` in your `~/.momrc`.
 4. To have a more advance autocompletion add the following code to your `.bashrc`
+
 Here is the code:
     #  Completion for mom:
     #
