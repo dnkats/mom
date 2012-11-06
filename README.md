@@ -10,6 +10,7 @@ Create your own help files with colors.
 4. To have a more advance autocompletion add the following code to your `.bashrc`
 
 Here is the code:
+
     #  Completion for mom:
     #
     #  mom [command] [option]
