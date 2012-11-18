@@ -1,4 +1,4 @@
-# MOM: My own manual
+# MOM: My own manual (aka My options memorizer aka My optional memory)
 
 Create your own help files with colors.
 
