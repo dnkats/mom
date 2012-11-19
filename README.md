@@ -29,7 +29,7 @@ Here is the code:
       case "${prev}" in
         ${progname})
           # already known commands
-          local coms=$(for x in `ls -1 ${dirmom}/*${ext}`; do y=${x#${dirmom}\/}; echo ${y%${ext}}; done )
+          local coms=$(for x in `ls -1 ${dirmom}/*${ext}`; do y=${x#*${dirmom}\/}; echo ${y%${ext}*}; done )
           COMPREPLY=( $(compgen -W "${coms}" -- ${cur}) )     
           return 0
             ;;
