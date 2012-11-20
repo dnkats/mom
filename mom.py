@@ -16,8 +16,12 @@ ATTRIZE = True
 # highlight program name
 HLPROGRAM = True
 HLPROGBEG = "\\on_yellow \\bold"
+# highlight options (i.e. everything beginning with a "-")
 HLOPTION = True
 HLOPTBEG = "\\bold"
+# highlight topic
+HLTOPIC = True
+HLTOPICBEG = "\\bold"
 # reset decorations after each line
 RESETLINE = True
 # decorations for service outputs
@@ -25,6 +29,7 @@ HLSERVBEG = "\\underline"
 # will be generated
 HLPROGEND = ""
 HLOPTEND = ""
+HLTOPICEND = ""
 HLSERVEND = ""
 # unknown command; colors and attributes have to be given explicitly
 UCCOLFG = "red"
@@ -60,11 +65,12 @@ def readrcf(rcfil):
     global COMPACT, TABLEN
     COMPACT = int(COMPACT)
     TABLEN = int(TABLEN)
-    global COLORIZE, ATTRIZE, HLPROGRAM, HLOPTION, RESETLINE
+    global COLORIZE, ATTRIZE, HLPROGRAM, HLOPTION, HLTOPIC, RESETLINE
     COLORIZE = to_bool(COLORIZE)
     ATTRIZE = to_bool(ATTRIZE)
     HLPROGRAM = to_bool(HLPROGRAM)
     HLOPTION = to_bool(HLOPTION)
+    HLTOPIC = to_bool(HLTOPIC)
     RESETLINE = to_bool(RESETLINE)
     
 # no sections in rcfile
@@ -98,9 +104,10 @@ def notclosedcolors(line):
 
 def genends():
     # generate ends for default highlights
-    global HLPROGEND, HLOPTEND, HLSERVEND
+    global HLPROGEND, HLOPTEND, HLTOPICEND, HLSERVEND
     HLPROGEND = "\\ "*notclosedcolors(HLPROGBEG)
     HLOPTEND = "\\ "*notclosedcolors(HLOPTBEG)
+    HLTOPICEND = "\\ "*notclosedcolors(HLTOPICBEG)
     HLSERVEND = "\\ "*notclosedcolors(HLSERVBEG)
 
 
@@ -118,7 +125,10 @@ def outputhelp(fil):
             pass
         elif line[0]=="*":
             if not newl: print
-            printline(line[1:].rstrip('\n'))
+            topic = line[1:].rstrip('\n')
+            if HLTOPIC:
+                topic = HLTOPICBEG + " " + topic + HLTOPICEND
+            printline(topic)
             if not COMPACT:
                 print
                 newl = True
