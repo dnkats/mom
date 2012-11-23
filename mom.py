@@ -311,6 +311,13 @@ def main():
             for fil in os.listdir(infdir):
                 if fil[-len(EXTENSION):] == EXTENSION:
                     print fil[:-len(EXTENSION)],
+        elif opt == "rm-all":
+            # delete the complete file
+            printline(HLSERVBEG+" Delete all topics for "+sys.argv[1]+"? (yYjJ/n)"+HLSERVEND)
+            inp=raw_input(" : ")
+            if inp in ["y", "Y", "j", "J"]:
+                if os.path.isfile(helpf):
+                    os.remove(helpf)
     elif os.path.isfile(helpf):
         outputhelp(helpf)
     else:

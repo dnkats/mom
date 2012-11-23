@@ -23,7 +23,7 @@ Here is the code:
       COMPREPLY=()
       cur="${COMP_WORDS[COMP_CWORD]}"
       prev="${COMP_WORDS[COMP_CWORD-1]}"
-      opts="add edit ls rm"
+      opts="add edit ls rm rm-all"
       progname="${COMP_WORDS[0]}"
 
       case "${prev}" in
