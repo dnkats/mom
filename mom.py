@@ -53,7 +53,9 @@ savecats["att"] = []
 lastcmd = []
 
 def readrcf(rcfil):
-    # read config and change defaults
+    """
+       Reads config and changes defaults
+    """
     conf = ConfigParser.RawConfigParser()
     conf.readfp(FakeSecHead(open(rcfil)))
     par = dict(conf.items("asection"))
@@ -95,6 +97,9 @@ def to_bool(value):
     raise Exception('Invalid value for boolean conversion: ' + str(value))
 
 def notclosedcolors(line):
+    """
+       Calculates number of not closed colors and attributes in line (line is printed out!)
+    """
     global RESETLINE
     saveRL = RESETLINE
     RESETLINE = True
@@ -103,7 +108,9 @@ def notclosedcolors(line):
     return len(lastcmd)
 
 def genends():
-    # generate ends for default highlights
+    """
+       Generates ends for default highlights
+    """
     global HLPROGEND, HLOPTEND, HLTOPICEND, HLSERVEND
     HLPROGEND = "\\ "*notclosedcolors(HLPROGBEG)
     HLOPTEND = "\\ "*notclosedcolors(HLOPTBEG)
@@ -112,12 +119,17 @@ def genends():
 
 
 def ensure_dir(d):
+    """
+       Creates directory d if not existent 
+    """
     if not os.path.exists(d):
         print "create",d
         os.makedirs(d)
 
 def outputhelp(fil):
-    # output help file
+    """
+       Outputs a help file
+    """
     hf=open(fil,'r')
     newl = True
     for line in hf:
@@ -145,16 +157,21 @@ def outputhelp(fil):
     hf.close()
 
 def color(text, color=None, on_color=None, attrs=None):
-    # wrapper for colored
+    """
+       wrapper for colored
+    """
     if not COLORIZE:
         color = None
         on_color = None
     if not ATTRIZE:
         attrs = None
+    # call colored from termcolor
     return colored(text, color, on_color, attrs)
 
 def wordcmd(w):
-    #analyse and save a command
+    """
+       Analyses and saves a command
+    """
     global savecats
     global lastcmd
     if w in colsfg:
@@ -167,20 +184,30 @@ def wordcmd(w):
         #add attribute
         lastcmd.append("att")
     else:
+        # unknown command, colorize using UCCOLFG,UCCOLBG,UCATTR
         if UCATTR.strip():
             attrib = [at.strip() for at in UCATTR.split(",")]
         else:
             attrib = []
         return color(w,UCCOLFG,UCCOLBG,attrib)
+    # save command for later use
     savecats[lastcmd[-1]].append(w)
     return ""
 
 def colorize(line):
+    """
+       Colorizes a line according to savecats[]
+    """
+    # last values in savecats for colors
     curcfg = savecats["cfg"][-1] if savecats["cfg"] else None
     curcbg = savecats["cbg"][-1] if savecats["cbg"] else None
+    # unique list from savecats for attributes
     return color(line,curcfg,curcbg,attrs=list(set(savecats["att"])))
 
 def highlight(line,pattern,hlbeg,hlend):
+    """
+       Highlights occurrences of a pattern in a line according to hlbeg
+    """
     i = 0; output = ''
     for m in re.finditer(pattern,line):
         output += "".join([line[i:m.start()],
@@ -191,6 +218,9 @@ def highlight(line,pattern,hlbeg,hlend):
     return "".join([output,line[i:]])
 
 def preprocess(line):
+    """
+       Highlights program name and/or options in a line
+    """
     if HLPROGRAM:
         # highlight the name of program
         line = highlight(line,"(?<!\.)(\\b"+sys.argv[1]+"\\b)",HLPROGBEG,HLPROGEND)
@@ -201,7 +231,9 @@ def preprocess(line):
     return line 
 
 def printline(line):
-    # print a line with colors and attributes
+    """
+       Prints a line with colors and attributes
+    """
     line = preprocess(line)
     global savecats
     global lastcmd
@@ -233,7 +265,9 @@ def printline(line):
     #print "".join([output,colorize(line[i:])]),
 
 def addhelp(fil):
-    # add help from stdin
+    """
+       Adds a new topic from stdin
+    """
     hf=open(fil,'a')
     printline(HLSERVBEG+" Topic"+HLSERVEND)
     inp=raw_input(': ')
@@ -246,7 +280,9 @@ def addhelp(fil):
     hf.close()
 
 def rmhelp(fil):
-    # rm help from file
+    """
+       Removes or hides a topic
+    """
     printline(HLSERVBEG+" Remove with \\red x\\ , hide with \\blue c\\ "+HLSERVEND)
     print
     hf=open(fil,'r')
@@ -254,6 +290,9 @@ def rmhelp(fil):
     hf.close()
     lines2=""
     rmd=0
+    # rmd: 0 - don't remove
+    #      1 - remove
+    #      2 - hide
     for line in lines:
         if line[0]=="*":
             rmd=0
