@@ -42,9 +42,9 @@ HELPOPTIONS = ["-h","--help", "-help"]
 
 EXTENSION = ".m0m"
 
-colsfg = "grey red green yellow blue magenta cyan white"
-colsbg = "on_grey on_red on_green on_yellow on_blue on_magenta on_cyan on_white"
-attrs = "bold dark underline blink reverse concealed"
+COLSFG = "grey red green yellow blue magenta cyan white"
+COLSBG = "on_grey on_red on_green on_yellow on_blue on_magenta on_cyan on_white"
+ATTRS = "bold dark underline blink reverse concealed"
 
 savecats = dict()
 savecats["cfg"] = []
@@ -174,13 +174,13 @@ def wordcmd(w):
     """
     global savecats
     global lastcmd
-    if w in colsfg:
+    if w in COLSFG.split():
         #save new foreground
         lastcmd.append("cfg")
-    elif w in colsbg:   
+    elif w in COLSBG.split():   
         #save new background
         lastcmd.append("cbg")
-    elif w in attrs:
+    elif w in ATTRS.split():
         #add attribute
         lastcmd.append("att")
     else:
@@ -350,6 +350,17 @@ def main():
             for fil in os.listdir(infdir):
                 if fil[-len(EXTENSION):] == EXTENSION:
                     print fil[:-len(EXTENSION)],
+        elif opt == "colors":
+            # list all text-decorations
+            for col in COLSFG.split():
+                printline("\\"+col+" "+col+" \\ ")
+            print
+            for col in COLSBG.split():
+                printline("\\"+col+" "+col+" \\ ")
+            print
+            for col in ATTRS.split():
+                printline("\\"+col+" "+col+" \\ ")
+            print
         elif opt == "rm-all":
             # delete the complete file
             printline(HLSERVBEG+" Delete all topics for "+sys.argv[1]+"? (yYjJ/n)"+HLSERVEND)
