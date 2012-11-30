@@ -34,7 +34,7 @@ Here is the code:
           return 0
             ;;
         -)
-          opts="ls";;
+          opts="ls colors";;
         *);;
       esac 
       # options
