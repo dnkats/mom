@@ -398,7 +398,7 @@ def main():
         # call standard help
         for hop in HELPOPTIONS: 
             try:
-                lines = check_output([sys.argv[1],hop])[:-1] # remove last \n
+                lines = check_output([sys.argv[1],hop],universal_newlines=True)[:-1] # remove last \n
                 printline(HLSERVBEG+" Standard help"+HLSERVEND)
                 print()
                 for line in lines.split('\n'):
