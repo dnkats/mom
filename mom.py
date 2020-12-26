@@ -1,7 +1,11 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import os, sys
 import re
-import ConfigParser
+try:
+    import configparser
+except:
+    import ConfigParser as configparser
 from subprocess import call, check_output
 from termcolor import colored
 
@@ -56,12 +60,19 @@ def readrcf(rcfil):
     """
        Reads config and changes defaults
     """
-    conf = ConfigParser.RawConfigParser()
-    conf.readfp(FakeSecHead(open(rcfil)))
-    par = dict(conf.items("asection"))
-    Params = dict()
-    for k, v in par.iteritems():
-        Params[k.upper()] = v
+    conf = configparser.RawConfigParser()
+    if sys.version_info <= (3, 0, 0):
+        conf.readfp(FakeSecHead(open(rcfil)))
+        par = dict(conf.items("asection"))
+        Params = dict()
+        for k, v in par.iteritems():
+            Params[k.upper()] = v
+    else:
+        conf.read_string("[asection]\n" + open(rcfil).read())
+        par = dict(conf.items("asection"))
+        Params = dict()
+        for k, v in par.items():
+            Params[k.upper()] = v
     globals().update(Params)
     # restore type
     global COMPACT, TABLEN
@@ -123,7 +134,7 @@ def ensure_dir(d):
        Creates directory d if not existent 
     """
     if not os.path.exists(d):
-        print "create",d
+        print ("create",d)
         os.makedirs(d)
 
 def outputhelp(fil):
@@ -136,24 +147,24 @@ def outputhelp(fil):
         if line[0]=="#":
             pass
         elif line[0]=="*":
-            if not newl: print
+            if not newl: print()
             topic = line[1:].rstrip('\n')
             if HLTOPIC:
                 topic = HLTOPICBEG + " " + topic + HLTOPICEND
             printline(topic)
             if not COMPACT:
-                print
+                print()
                 newl = True
             else:
                 newl = False
         else:
             if not COMPACT:
-                print " "*(TABLEN),
+                print (" "*(TABLEN),end='')
             else:
-                print " - ",
+                print (" - ",end='')
             printline(line[1:])
             newl = True
-    if not newl: print
+    if not newl: print()
     hf.close()
 
 def color(text, color=None, on_color=None, attrs=None):
@@ -270,11 +281,17 @@ def addhelp(fil):
     """
     hf=open(fil,'a')
     printline(HLSERVBEG+" Topic"+HLSERVEND)
-    inp=raw_input(': ')
+    if sys.version_info <= (3, 0, 0):
+        inp=raw_input(': ')
+    else:
+        inp=input(': ')
     if len(inp) > 0:
         hf.write("*"+inp+"\n")
         printline(HLSERVBEG+" Description"+HLSERVEND)
-        inp=raw_input(': ')
+        if sys.version_info <= (3, 0, 0):
+            inp=raw_input(': ')
+        else:
+            inp=input(': ')
         if len(inp)>0:
             hf.write(" "+inp+"\n")
     hf.close()
@@ -284,7 +301,7 @@ def rmhelp(fil):
        Removes or hides a topic
     """
     printline(HLSERVBEG+" Remove with \\red x\\ , hide with \\blue c\\ "+HLSERVEND)
-    print
+    print()
     hf=open(fil,'r')
     lines=hf.readlines()
     hf.close()
@@ -297,7 +314,10 @@ def rmhelp(fil):
         if line[0]=="*":
             rmd=0
             printline(line[1:].rstrip('\n'))
-            inp=raw_input(" : ")
+            if sys.version_info <= (3, 0, 0):
+                inp=raw_input(" : ")
+            else:
+                inp=input(" : ")
             if inp=="x":
                 rmd=1
             elif inp=="c":
@@ -323,7 +343,7 @@ def main():
     if os.path.isfile(rcfil):
         readrcf(rcfil)
     if len(sys.argv)==1:
-        print "Use",color(sys.argv[0],"red"), "<command>"
+        print ("Use",color(sys.argv[0],"red"), "<command>")
         return
     #generate ends for highlights
     genends()
@@ -346,25 +366,29 @@ def main():
         elif opt == "ls":
             # list all help files
             printline(HLSERVBEG+" Available commands"+HLSERVEND)
-            print
+            print()
             for fil in os.listdir(infdir):
                 if fil[-len(EXTENSION):] == EXTENSION:
-                    print fil[:-len(EXTENSION)],
+                    print (fil[:-len(EXTENSION)],end=' ')
+            print()
         elif opt == "colors":
             # list all text-decorations
             for col in COLSFG.split():
                 printline("\\"+col+" "+col+" \\ ")
-            print
+            print()
             for col in COLSBG.split():
                 printline("\\"+col+" "+col+" \\ ")
-            print
+            print()
             for col in ATTRS.split():
                 printline("\\"+col+" "+col+" \\ ")
-            print
+            print()
         elif opt == "rm-all":
             # delete the complete file
             printline(HLSERVBEG+" Delete all topics for "+sys.argv[1]+"? (yYjJ/n)"+HLSERVEND)
-            inp=raw_input(" : ")
+            if sys.version_info <= (3, 0, 0):
+                inp=raw_input(" : ")
+            else:
+                inp=input(" : ")
             if inp in ["y", "Y", "j", "J"]:
                 if os.path.isfile(helpf):
                     os.remove(helpf)
@@ -376,10 +400,10 @@ def main():
             try:
                 lines = check_output([sys.argv[1],hop])[:-1] # remove last \n
                 printline(HLSERVBEG+" Standard help"+HLSERVEND)
-                print
+                print()
                 for line in lines.split('\n'):
                     printline(line)
-                    print
+                    print()
                 break
             except:
                 # try next h-option
