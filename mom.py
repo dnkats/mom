@@ -342,8 +342,15 @@ def main():
     #config
     if os.path.isfile(rcfil):
         readrcf(rcfil)
-    if len(sys.argv)==1:
-        print ("Use",color(sys.argv[0],"red"), "<command>")
+    if len(sys.argv)==1 or len(sys.argv)==2 and sys.argv[1] in ["-h","--help"]:
+        print ("Use",color(sys.argv[0],"red"), "<command> [option]")
+        print ("Options:")
+        print (color("  add", "red"), ":    add a new topic")
+        print (color("  rm", "red"), ":     remove or hide a topic")
+        print (color("  edit", "red"), ":   edit the help file")
+        print (color("  ls", "red"), ":     list all help files")
+        print (color("  colors", "red"), ": list all text-decorations")
+        print (color("  rm-all", "red"), ": delete all topics")
         return
     #generate ends for highlights
     genends()
