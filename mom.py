@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import print_function
 import os, sys
 import re
@@ -234,7 +234,7 @@ def preprocess(line):
     """
     if HLPROGRAM:
         # highlight the name of program
-        line = highlight(line,"(?<!\.)(\\b"+sys.argv[1]+"\\b)",HLPROGBEG,HLPROGEND)
+        line = highlight(line,"(?<!\\.)(\\b"+sys.argv[1]+"\\b)",HLPROGBEG,HLPROGEND)
    
     if HLOPTION:
         # highlight options (words starting with -)
